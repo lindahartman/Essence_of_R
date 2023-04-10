@@ -12,29 +12,40 @@ execute:
   echo: true
 format: 
   revealjs:
-    smaller: true
+    smaller: false
     incremental: true 
     theme: white
 editor: visual
 ---
 
-##  {background-image="img/Rlogo.png" background-size="80px" background-position="top 10px right 10px"}
+##  {background-image="img/Rlogo.png" background-size="80px" background-position="top 10px left 10px"}
 
-::: {style="font-size: 1.5em; text-align: left"}
-R
-:::
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#data("penguins", package = "palmerpenguins")
+library(tidyverse)
+library(gt)
+options(width = 70)
+```
 
+```{=html}
+<style type="text/css">
+    :root {
+        --r-main-font-size: 30px;
+    }
+</style>
+```
 -   a language and environment for statistical computing and graphics
 
 -   R is best as a [statistical tool]{.fragment .highlight-red}, thus ideal for academics, scientists, engineers, economers,...
 
--   Core distribution and contributed libraries (19347 packages on March 31 2023)
+-   Core distribution and contributed libraries (19347 packages on March 31 2023) ![](img/r-packages-2.png){fig-align="right" width="50%"} <!-- {.absolute bottom="0" left="0" width="400"} -->
 
--   Simplified workflow with Rstudio (IDE)
+-   Simplified workflow with Rstudio (IDE) ![](img/Rstudio.png){.absolute bottom="0" right="0" width="200" height="200"}
 
 -   Very active community for development and support
-
-![](img/Rstudio.png){.fragment .absolute bottom="0" right="0" width="200" height="200"}
 
 ##  {background-image="img/E-P5vPtXEA0MBYS.jpeg" background-size="contain"}
 
@@ -60,133 +71,184 @@ Contents:
 
 ## Cleansing and prepping data
 
-::: nonincremental
+
 -   The `tidyverse` package
-:::
+
+. . . 
 
 ```{r}
-#| output: false
-data("penguins", package = "palmerpenguins")
-library(tidyverse)
-library(gt)
-```
-
-```{r}
+penguins <- palmerpenguins::penguins
 glimpse(penguins) #Quick overview
 ```
 
-## Cleanup the data
 
-If you noticed above, there was some NA or missing data. We can remove those rows for now.
+-   If you noticed above, there was some NA or missing data. We can remove those rows for now (and keep a subset of the variables).
 
+. . . 
 ```{r}
-penguins_org <- penguins
-penguins <- penguins_org %>% 
-  na.omit() %>% 
-  mutate(species_num = as.numeric(species))
-```
-
-## Descriptive statistics
-
-```{r}
-penguins %>% 
-  summarize(
-    n = n(), 
-    mean_weight = mean(body_mass_g, na.rm = TRUE),
-    sd_weight = sd(body_mass_g, na.rm = TRUE),
-    mean_flipper_length = mean(flipper_length_mm, na.rm = TRUE),
-    sd_flipper_length = sd(flipper_length_mm, na.rm = TRUE)
-    ) %>% 
-  arrange(desc(mean_weight)) %>% round(1) %>% gt::gt() 
-```
-
-## Descriptive statistics by group
-
-```{r}
-#| output: false
-penguins %>% 
-  group_by(species, sex) %>% 
-  summarize(
-    n = n(), 
-    weight = mean(body_mass_g, na.rm = TRUE),
-    flipper_length = mean(flipper_length_mm, na.rm = TRUE)
-    ) %>% 
-  arrange(desc(weight)) 
+penguins <- penguins %>% drop_na() %>% select(species,sex,bill_length_mm,bill_depth_mm)
 ```
 
 ```{r}
 #| echo: false
 penguins %>% 
-  group_by(species, sex) %>% 
-  summarize(
-    n = n(), 
-    weight = mean(body_mass_g, na.rm = TRUE),
-    flipper_length = mean(flipper_length_mm, na.rm = TRUE)
-    ) %>% 
-  arrange(desc(weight))  %>% gt::gt() %>% 
-  gt::fmt_number(
-    columns = weight:flipper_length,
-    decimals = 0,
-    use_seps=FALSE
-  ) 
- 
+  glimpse()
 ```
+
+## Descriptive statistics I
+-   With `dplyr` in `tidyverse` package or here with `skimr` package
+
+. . .
+
+::: {style="font-size: 80%;"}
+```{r}
+skimr::skim(penguins)
+```
+:::
+
+## Descriptive statistics cont. (numeric variables)
+
+::: {style="font-size: 80%;"}
+
+```{r}
+#| echo: true
+#| output: false
+skimr::skim(penguins)
+```
+
+```{r}
+#| echo: false
+#| output: true
+skimr::skim(penguins) %>% 
+skimr::yank("numeric") 
+```
+
+:::
+
+## Descriptive statistics by group
+
+::: {style="font-size: 100%;"}
+
+```{r}
+#| echo: true
+#| output: false
+#| code-line-numbers: "2|1-3"
+penguins %>% 
+  group_by(species,sex) %>% 
+  skimr::skim() %>% skimr::yank("numeric") 
+```
+
+```{r}
+#| echo: false
+#| output: true
+penguins %>% 
+  group_by(species,sex) %>% 
+  skimr::skim() %>% skimr::yank("numeric") %>% 
+  kableExtra::kbl(digits = 1) %>% 
+  kableExtra::collapse_rows(1:3)
+```
+:::
 
 # Graphics
 
-## Graphics: Distribution 
+## Graphics: Distributions
+- Easy publication quality plotting with `ggplot2`
 
-```{r, fig.retina=1, fig.dim=c(8,4)}
+. . .
+
+```{r}
 #| fig-width: 8
-#| figh-height: 4
-#| out-width: "50%"
+#| fig-height: 4
+#| fig-align: center
+#| code-line-numbers: "1-2|1-3|1-4|1-5"
 penguins %>% 
-  ggplot(aes(body_mass_g, fill = species)) + 
+  ggplot(aes(bill_depth_mm, fill = species)) + 
   geom_density(color = "white", alpha = 0.5) +
   scale_fill_manual(values = c("darkorange","purple","cyan4")) +
-  labs(x = "Penguin Bins")
+  labs(x = "Bill depth (mm)") + ggtitle("Bill depth per species")
 ```
 
-## Graphics: Scatter Plot with linear model
+## Graphics: Scatter with trendline
+```{r}
+#| fig-width: 8
+#| fig-height: 4
+#| fig-align: center
+#| out-width: "50%"
+#| message: false
+#| code-line-numbers: "1-2|1-3|1-4|1-5"
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, y = bill_depth_mm)) + 
+  geom_point(size = 2, alpha = 0.8) +
+  geom_smooth(method = "lm")+
+  labs(x = "Bill length (mm)", y = "Bill depth (mm)") 
 
-```{r, fig.retina=1, fig.dim=c(8,4)}
-penguin_size_plot <- penguins %>% 
-  ggplot(aes(x = body_mass_g, y = flipper_length_mm, color = species)) + 
-  scale_color_manual(values = c("darkorange","purple","cyan4")) +
-  geom_point(size = 2, alpha = 0.5) +
-  labs(x = "Mass (g)", y = "Flipper Length (mm)") +
-  geom_smooth(aes(group = "none"), method = "lm")
+```
 
-penguin_size_plot
+
+##  Scatter with trendline per species
+If we control for species a quite different picture appear 
+. . . 
+
+```{r}
+#| fig-width: 8
+#| fig-height: 4
+#| fig-align: center
+#| out-width: "50%"
+#| message: false
+#| code-line-numbers: "2"
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, y = bill_depth_mm, color=species)) + 
+  geom_point(size = 2, alpha = 0.8) +
+  geom_smooth(method = "lm")+
+  labs(x = "Bill length (mm)", y = "Bill depth (mm)")
+
 ```
 
 # Statistical models
 
 ## Linear regression
+
 ```{r}
+lm_bill <- lm(bill_depth_mm ~bill_length_mm  + species, data=penguins)
+
+summary(lm_bill)
+```
+. . . 
+
+```{r}
+cbind(coef(lm_bill), confint(lm_bill)) %>% print(digit=2)
+```
+
+## Other regression models
+
+- R implementations of all standard (and non-standard...) regression models (*logistic, poisson, time-series analysis, quantile regression*, ...) either in *base* installation or in contributed *packages* 
+
+- Ex logistic regression
+
+. . . 
+
+```{r}
+penguins$male=as.numeric(penguins$sex=="male")
+glm_bill <- glm(male ~bill_depth_mm + bill_length_mm, family="binomial", data=penguins %>% filter(species=="Adelie"))
+
+summary(glm_bill)
 
 
 ```
+ 
+## Exploring models
 
-## Logistic regression
-```{r}
+Efficient to explore multiple relationships in data simultaneously. Just to indicate how you can fit several models all at once with `dplyr` + `broom`.
 
-
-```
-
-## Modeling section {background-color="black"}
-
-Efficient to explore multiple relationships in data simultaneously. 
-Just to indicate how you can fit some different models all at once with `dplyr` + `broom`.
-
-##
 
 ```{r}
+
 model_inputs <- tibble(
   model_form = c(
-    list(flipper_length_mm ~ body_mass_g),
-    list(species_num ~ bill_length_mm + body_mass_g + sex),
-    list(flipper_length_mm ~ bill_length_mm + species)
+    list(bill_depth_mm ~ species),
+    list(bill_depth_mm ~ bill_length_mm),
+    list(bill_depth_mm ~ bill_length_mm + species),
+    list(bill_depth_mm ~ bill_length_mm + species+sex)
     ),
   data = list(penguins)
 ) 
@@ -199,7 +261,6 @@ model_metrics <- model_inputs %>%
 ```
 
 ##
-
 ```{r}
 model_metrics %>% 
   select(model_form, r.squared:p.value) %>% 
@@ -212,18 +273,32 @@ model_metrics %>%
   )
 ```
 
-## Machine learning
+# Machine learning
+## Machine learning with `caret` or `tidymodels`
+
+ Efficient support for machine learning:
+ 
+- unified *interfaces* to tons of models (regression, random forest, boosting, Support-Vector-Machines, Neural networks, ... ) 
+- provide toolkit for *tuning* and resampling (CV)
+- helper functions for measuring *performance*
+- one of the first *parallel processing* implementations
+- ML workflow automation (inspired by sci-kit learn)
 
 
 
-## Summary
+
+## Summary {background-image="img/Rlogo.png" background-size="80px" background-position="top 10px left 10px"}
+
 
 -   a language and environment for statistical computing and graphics
 -   including efficient data preparation and cleaning
 -   excellent graphics
+-   excellent for statistical analysis and machine learning
 
-[Palmer penguins code in large part from https://rstudio-conf-2022.github.io/get-started-quarto/ for]{style="font-size: 0.5em,  .absolute bottom=0"}
+::: {.absolute style="font-size: 1rem;" bottom="0"}
+Palmer penguins code in large part from https://rstudio-conf-2022.github.io/get-started-quarto/
+:::
 
-## Add?
-
-Example from Tetra Pak
+::: footer
+Learn more: [Link to R code for this presentation](https://github.com/dmi3kno/Essence_of_R/blob/main/Essence_R_230411.qmd)
+:::
