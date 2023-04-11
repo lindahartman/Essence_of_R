@@ -1,0 +1,249 @@
+---
+title: "The Essence of R"
+subtitle: "LU eScience Hub: Programming language day"
+author: "Linda Hartman"
+institute: Lund University
+#date: "2023-04-11"
+title-slide-attributes:
+  data-background-image: "img/Universitetshusetvt201019.jpg"
+  data-background-size: contain
+  data-background-opacity: "0.3"
+execute: 
+  echo: true
+format: 
+  revealjs:
+    mainFontSize: 24
+    incremental: true 
+    theme: white
+editor: visual
+---
+
+```{=html}
+<style type="text/css">
+    :root {
+        --r-main-font-size: 30px;
+    }
+</style>
+```
+
+![](img/Rlogo.png){.absolute top="0" left="50" width="150" height="150"}
+
+-   a language and environment for statistical computing and graphics
+
+-   R is best as a [statistical tool]{.highlight-red}, thus ideal for academics, scientists, engineers, economers,...
+
+-   Core distribution and contributed libraries (19347 packages on March 31 2023) ![](img/r-packages-2.png){fig-align="right" width="50%"} <!-- {.absolute bottom="0" left="0" width="400"} -->
+
+-   Simplified workflow with Rstudio (IDE) ![](img/Rstudio.png){.absolute bottom="0" right="0" width="200" height="200"}
+
+-   Very active community for development and support
+
+##  {background-image="img/E-P5vPtXEA0MBYS.jpeg" background-size="contain"}
+
+## Example: Penguins {.nonincremental}
+
+::: columns
+::: {.column width="50%"}
+![Diagram of penguin head with indication of bill length and bill depth.](https://allisonhorst.github.io/palmerpenguins/reference/figures/culmen_depth.png)
+:::
+
+::: {.column width="50%"}
+Contents:
+
+-   Cleansing and prepping data
+
+-   Descriptive statistics
+
+-   Graphics
+
+-   Modeling
+:::
+:::
+
+## Cleansing and prepping data
+
+::: nonincremental
+-   The `tidyverse` package
+:::
+
+```{r}
+#| output: false
+data("penguins", package = "palmerpenguins")
+library(tidyverse)
+library(gt)
+```
+
+```{r}
+glimpse(penguins) #Quick overview
+```
+
+## Cleanup the data
+
+If you noticed above, there was some NA or missing data.
+
+We can remove those rows for now:
+
+```{r}
+penguins_org <- penguins
+penguins <- penguins_org %>% 
+  na.omit() %>% 
+  mutate(species_num = as.numeric(species))
+glimpse(penguins) #Quick overview of modified data
+```
+
+## Descriptive statistics
+
+```{r}
+#| output: false
+#| code-line-numbers: "1|1-2|1-9"
+penguins %>% 
+  summarize(
+    n = n(), 
+    weight.mean = mean(body_mass_g, na.rm = TRUE),
+    weight.sd = sd(body_mass_g, na.rm = TRUE),
+    flipper.mean = mean(flipper_length_mm, na.rm = TRUE),
+    flipper.sd = sd(flipper_length_mm, na.rm = TRUE)
+    ) 
+```
+
+```{r}
+#| echo: false
+penguins %>% 
+  summarize(
+    n = n(), 
+    weight.mean = mean(body_mass_g, na.rm = TRUE),
+    weight.sd = sd(body_mass_g, na.rm = TRUE),
+    flipper.mean = mean(flipper_length_mm, na.rm = TRUE),
+    flipper.sd = sd(flipper_length_mm, na.rm = TRUE)
+    ) %>% 
+  #arrange(desc(mean_weight)) %>% 
+  round(1) %>% gt::gt() |> tab_options(table.font.size = pct(120))
+```
+
+## Descriptive statistics by group
+
+```{r}
+#| output: false
+#| code-line-numbers: "1-2|1-3|1-7|1-8"
+penguins %>% 
+  group_by(species, sex) %>% 
+  summarize(
+    n = n(), 
+    weight = mean(body_mass_g, na.rm = TRUE),
+    flipper_length = mean(flipper_length_mm, na.rm = TRUE)
+    ) %>% 
+  arrange(desc(weight)) 
+```
+
+```{r}
+#| echo: false
+penguins %>% 
+  group_by(species, sex) %>% 
+  summarize(
+    n = n(), 
+    weight = mean(body_mass_g, na.rm = TRUE),
+    flipper_length = mean(flipper_length_mm, na.rm = TRUE)
+    ) %>% 
+  arrange(desc(weight))  %>% gt::gt() %>% 
+  gt::fmt_number(
+    columns = weight:flipper_length,
+    decimals = 0,
+    use_seps=FALSE
+  ) |> tab_options(table.font.size = pct(75))
+ 
+```
+
+# Graphics
+
+## Graphics: Distribution
+
+```{r, fig.retina=1, fig.dim=c(8,4)}
+#| fig-width: 8
+#| figh-height: 4
+#| out-width: "50%"
+penguins %>% 
+  ggplot(aes(body_mass_g, fill = species)) + 
+  geom_density(color = "white", alpha = 0.5) +
+  scale_fill_manual(values = c("darkorange","purple","cyan4")) +
+  labs(x = "Penguin Bins")
+```
+
+## Graphics: Scatter Plot with linear model
+
+```{r, fig.retina=1, fig.dim=c(8,4)}
+penguin_size_plot <- penguins %>% 
+  ggplot(aes(x = body_mass_g, y = flipper_length_mm, color = species)) + 
+  scale_color_manual(values = c("darkorange","purple","cyan4")) +
+  geom_point(size = 2, alpha = 0.5) +
+  labs(x = "Mass (g)", y = "Flipper Length (mm)") +
+  geom_smooth(aes(group = "none"), method = "lm")
+
+penguin_size_plot
+```
+
+# Statistical models
+
+## Linear regression
+
+```{r}
+
+
+```
+
+## Logistic regression
+
+```{r}
+
+
+```
+
+## Modeling section {background-color="black"}
+
+Efficient to explore multiple relationships in data simultaneously. Just to indicate how you can fit some different models all at once with `dplyr` + `broom`.
+
+## 
+
+```{r}
+model_inputs <- tibble(
+  model_form = c(
+    list(flipper_length_mm ~ body_mass_g),
+    list(species_num ~ bill_length_mm + body_mass_g + sex),
+    list(flipper_length_mm ~ bill_length_mm + species)
+    ),
+  data = list(penguins)
+) 
+
+model_metrics <- model_inputs %>% 
+  rowwise(model_form, data) %>% 
+  summarize(lm = list(lm(model_form, data = data)), .groups = "drop") %>% 
+  rowwise(model_form, lm, data) %>% 
+  summarise(broom::glance(lm), .groups = "drop")
+```
+
+## 
+
+```{r}
+model_metrics %>% 
+  select(model_form, r.squared:p.value) %>% 
+  mutate(model_form = as.character(model_form)) %>% 
+  gt::gt() %>% 
+  gt::fmt_number(r.squared:statistic) %>% 
+  gt::fmt_scientific(p.value) %>% 
+  gt::cols_width(
+    model_form ~ px(150)
+  )
+```
+
+## Machine learning
+
+## Summary
+
+-   a language and environment for statistical computing and graphics
+-   including efficient data preparation and cleaning
+-   excellent graphics
+
+[Palmer penguins code in large part from https://rstudio-conf-2022.github.io/get-started-quarto/ for]{style="font-size: 0.5em,  .absolute bottom=0"}
+
+## Add?
+
+Example from Tetra Pak
