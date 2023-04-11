@@ -49,7 +49,6 @@ options(width = 70)
 
 -   Very active community for development and support
 
-
 ## Example: Penguins {.nonincremental}
 
 ::: columns
@@ -126,7 +125,6 @@ skimr::yank("numeric")
 
 ## Descriptive statistics by group
 
-
 ```{r}
 #| echo: true
 #| output: false
@@ -147,7 +145,6 @@ penguins %>%
   kableExtra::kbl(digits = 1) %>% 
   kableExtra::collapse_rows(1:3)
 ```
-
 
 # Graphics
 
@@ -189,7 +186,7 @@ penguins %>%
 
 ## Scatter with trendline per species
 
-If we control for species a quite different picture appear... 
+If we control for species a quite different picture appear...
 
 . . .
 
@@ -227,7 +224,7 @@ penguins %>%
 
 ```
 
-- An example of Simpsons paradox...
+-   An example of Simpsons paradox...
 
 # Statistical models
 
@@ -247,10 +244,11 @@ cbind(coef(lm_bill), confint(lm_bill)) %>% print(digit=2)
 ```
 
 ## Statistical models
-:::{non-incremental}
--   R implementations for all standard (and non-standard...) statistical models 
-- *logistic, poisson, time-series analysis, quantile regression*, ...
-- either in *base* installation or in contributed *packages*
+
+::: {non-incremental}
+-   R implementations for all standard (and non-standard...) statistical models
+-   *logistic, poisson, time-series analysis, quantile regression*, ...
+-   either in *base* installation or in contributed *packages*
 :::
 
 -   Ex logistic regression
@@ -270,9 +268,10 @@ summary(glm_bill)
 ##  {background-image="img/E-P5vPtXEA0MBYS.jpeg" background-size="contain"}
 
 ## Other nice features:
-- Great support for **Literate programming**, i.e. building reports or presentations with code and comments intertwined
 
-- Exploring models: Efficient to **explore multiple relationships** in data simultaneously. 
+-   Great support for **Literate programming**, i.e. building reports or presentations with code and comments intertwined
+
+-   Exploring models: Efficient to **explore multiple relationships** in data simultaneously.
 
 . . .
 
@@ -296,7 +295,6 @@ model_metrics <- model_inputs %>%
   rowwise(model_form, lm, data) %>% 
   summarise(broom::glance(lm), .groups = "drop")
 ```
-
 
 ```{r}
 #| echo: false
@@ -329,6 +327,13 @@ Efficient support for machine learning:
 -   including efficient data preparation and cleaning
 -   excellent graphics
 -   excellent for statistical analysis and machine learning
+
+. . .
+
+Recommended reading:
+
+- R for Data Science: https://r4ds.had.co.nz/
+- Tidy Modeling with R: https://www.tmwr.org/ 
 
 . . .
 
