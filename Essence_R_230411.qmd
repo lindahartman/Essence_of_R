@@ -339,5 +339,5 @@ Palmer penguins code inspired by https://rstudio-conf-2022.github.io/get-started
 :::
 
 ::: footer
-Learn more: [Link to executable R code for this presentation](https://github.com/dmi3kno/Essence_of_R/blob/main/Essence_R_230411.qmd)
+Learn more: [Link to executable R code for this presentation](https://github.com/lindahartman/Essence_of_R.git)
 :::
